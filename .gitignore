@@ -1,5 +1,7 @@
 # Created by https://www.gitignore.io/api/dart,intellij
 
+doc/
+
 ### Dart ###
 # Don’t commit the following directories created by pub.
 .buildlog
