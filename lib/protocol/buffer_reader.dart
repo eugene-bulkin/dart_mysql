@@ -31,11 +31,9 @@ class BufferReader {
   /// Throws a [StateError] if a NUL byte is never read before reaching the end of a string.
   List<int> readNullTerminatedString() {
     try {
-      var length = 0;
       var bytes = [];
       while (_buffer[_ptr] != 0x00) {
         bytes.add(_buffer[_ptr++]);
-        length++;
       }
       _ptr++;
       return bytes;
