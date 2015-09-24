@@ -8,6 +8,8 @@ class BufferReader {
 
   int _ptr = 0;
 
+  bool get hasMore => _ptr < _buffer.length;
+
   BufferReader(this._buffer);
 
   /// Reads [length] bytes from the buffer.
