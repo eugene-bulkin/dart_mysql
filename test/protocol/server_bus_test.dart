@@ -53,12 +53,18 @@ main() {
 
       expect(result1, equals(packet1));
       expect(result2, equals(packet2));
-    });
+    }, timeout: new Timeout(const Duration(seconds: 5)));
+
+    test('sends packets correctly', () async {
+      bus.sendPacket(packet1);
+
+      expect(await socket.first, orderedEquals(buffer1));
+    }, timeout: new Timeout(const Duration(seconds: 5)));
 
     test('ensure closing turns off subscriptions', () async {
       await bus.close();
 
       expect(controller.hasListener, isFalse);
-    });
+    }, timeout: new Timeout(const Duration(seconds: 5)));
   });
 }

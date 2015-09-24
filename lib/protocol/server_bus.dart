@@ -47,7 +47,11 @@ class ServerBus {
     }
   }
 
-  // TODO(eugene-bulkin): Implement Packet sending here.
+  /// Sends a [Packet] over the socket to the server.
+  void sendPacket(Packet packet) {
+    var buffer = packet.toBytes();
+    _socket.add(buffer);
+  }
 
   /// Closes all connections and subscriptions.
   Future close() async {
