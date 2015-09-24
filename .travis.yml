@@ -1,4 +1,3 @@
 language: dart
 dart:
-  - stable
-  - dev
+  - '1.12.0'
