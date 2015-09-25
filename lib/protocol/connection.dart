@@ -4,7 +4,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:crypto/crypto.dart';
 import 'package:dart_mysql/protocol/buffer_reader.dart';
+import 'package:dart_mysql/protocol/buffer_writer.dart';
 import 'package:dart_mysql/protocol/capability_flags.dart';
 import 'package:dart_mysql/protocol/packet.dart';
 import 'package:dart_mysql/protocol/server_bus.dart';
@@ -46,6 +48,31 @@ class Connection {
   final String database;
 
   StreamSubscription _packetSubscription;
+
+  static List<int> hashPassword(String password, List<int> scramble) {
+    if (password == null) {
+      return [];
+    }
+    var hasher = new SHA1();
+    hasher.add(UTF8.encode(password));
+    var hashedPassword = hasher.close();
+
+    hasher = new SHA1()
+      ..add(hashedPassword);
+    var doubleHashedPassword = hasher.close();
+
+    hasher = new SHA1();
+    hasher.add(scramble);
+    hasher.add(doubleHashedPassword);
+    var scrambleHash = hasher.close();
+
+    var hash = new List<int>(hashedPassword.length);
+    for (var i = 0; i < hashedPassword.length; i++) {
+      hash[i] = hashedPassword[i] ^ scrambleHash[i];
+    }
+
+    return hash;
+  }
 
   /// Takes in the initial handshake packet buffer and parses it into the relevant data.
   HandshakeData parseHandshake(List<int> buffer) {
@@ -100,11 +127,49 @@ class Connection {
       authPluginName = UTF8.decode(reader.readNullTerminatedString());
     }
 
-    _logger.finest(
-        'Handshake parsed. Auth plugin: $authPluginName. Auth data: $authPluginData.');
+    _logger.finest('Auth plugin: $authPluginName. Auth data: $authPluginData.');
 
     return new HandshakeData(serverVersion, connectionId, capabilities,
     characterSet, statusFlags, authPluginData, authPluginName);
+  }
+
+  Packet makeResponse(HandshakeData handshake) {
+    var serverCapabilities = handshake.capabilities;
+    if (serverCapabilities & CapabilityFlags.CLIENT_PROTOCOL_41 == 0) {
+      throw new UnsupportedError('Client versions below 4.1 not supported.');
+    }
+
+    var clientCapabilities = CapabilityFlags.CLIENT_PROTOCOL_41 |
+    CapabilityFlags.CLIENT_LONG_PASSWORD |
+    CapabilityFlags.CLIENT_LONG_FLAG |
+    CapabilityFlags.CLIENT_TRANSACTIONS |
+    CapabilityFlags.CLIENT_SECURE_CONNECTION;
+    if (database != null) {
+      clientCapabilities |= CapabilityFlags.CLIENT_CONNECT_WITH_DB;
+    }
+
+    var writer = new BufferWriter();
+    writer.writeInt4(clientCapabilities);
+    writer.writeInt4(0x01000000);
+    writer.writeInt1(handshake.characterSet);
+    writer.fill(23);
+    writer.writeNullTerminatedString(username);
+
+    if (serverCapabilities & CapabilityFlags.CLIENT_SECURE_CONNECTION > 0) {
+      var hash = hashPassword(password, handshake.authPluginData);
+      writer.writeInt1(hash.length);
+      writer.writeBytes(hash);
+    }
+
+    if (database != null) {
+      writer.writeNullTerminatedString(database);
+    }
+
+    if (serverCapabilities & CapabilityFlags.CLIENT_PLUGIN_AUTH > 0) {
+      writer.writeNullTerminatedString(handshake.authPluginName);
+    }
+
+    return new Packet(writer.buffer.length, 1, writer.buffer);
   }
 
   /// Performs the MySQL client/server handshake.
@@ -114,12 +179,13 @@ class Connection {
   ///
   /// Then the [Handshake Response](http://dev.mysql.com/doc/internals/en/connection-phase-packets.html#packet-Protocol::HandshakeResponse)
   /// is created and sent back to the server.
-  Future doHandshake(Packet packet) async {
+  void doHandshake(Packet packet) {
     _logger.finest('Received initial handshake packet.');
     var handshakeData = parseHandshake(packet.payload);
-    // TODO(eugene-bulkin): Generate handshake response.
+    _logger.finest('Parsed handshake. Creating response.');
+    var responsePacket = makeResponse(handshakeData);
 
-    return new Future.value(null);
+    _bus.sendPacket(responsePacket);
   }
 
   Connection(this._bus, this.username, {this.password, this.database}) {
@@ -130,8 +196,14 @@ class Connection {
   /// Connects to the server and completes the client/server handshake.
   Future connect() async {
     await _bus.connected;
-    await doHandshake(await _bus.stream.first);
+    doHandshake(await _bus.stream.first);
     _packetSubscription = _bus.stream.listen(onPacket);
+    return new Future.value(true);
+  }
+
+  Future close() async {
+    await _bus.close();
+    if (_packetSubscription != null) await _packetSubscription.cancel();
   }
 
   /// Handles packets coming in from the [ServerBus].
