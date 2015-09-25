@@ -215,7 +215,7 @@ class Connection {
   /// Connects to the server and completes the client/server handshake.
   Future connect() async {
     var handshakePacketFuture = _bus.stream.first;
-    var responsePacketFuture = _bus.stream.first;
+    var responsePacketFuture = _bus.stream.skip(1).first;
 
     await _bus.connected;
 
@@ -223,8 +223,8 @@ class Connection {
 
     var handshakeResponsePacket = await responsePacketFuture;
     if (!handshakeResponsePacket.isOK) {
-      // TODO(eugene-bulkin): Print actual MySQL error message from ERR_Packet here.
-      throw new StateError('Unable to complete handshake.');
+      var errPacket = new ERRPacket.fromPacket(handshakeResponsePacket, _clientCapabilities);
+      throw new StateError('Unable to complete handshake: $errPacket');
     }
     _packetSubscription = _bus.stream.listen(onPacket, onDone: close);
     return new Future.value(true);

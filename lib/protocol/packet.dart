@@ -1,5 +1,7 @@
 library dart_mysql.protocol.packet;
 
+import 'dart:convert';
+
 import 'package:dart_mysql/protocol/buffer_reader.dart';
 import 'package:dart_mysql/protocol/buffer_writer.dart';
 import 'package:quiver/check.dart';
@@ -86,4 +88,49 @@ class Packet {
   }
 
   toString() => 'Packet($sequenceId)[${payload.join(' ')}]';
+}
+
+class OKPacket extends Packet {
+  int affectedRows;
+  int lastInsertId;
+  int statusFlags;
+  int numWarnings = 0;
+  String info;
+
+  OKPacket.fromPacket(Packet packet, int capabilities) : super(packet.length, packet.sequenceId, packet.payload) {
+    checkArgument(packet.isOK, message: 'Cannot create OKPacket from a non-OK Packet');
+
+    var reader = new BufferReader(packet.payload.sublist(1));
+
+    affectedRows = reader.readLenencInt();
+    lastInsertId = reader.readLenencInt();
+    _logger.info('Affected Rows: $affectedRows, Last Insert ID: $lastInsertId');
+    if (_clientCapabilities & CapabilityFlags.CLIENT_PROTOCOL_41 > 0) {
+      statusFlags = reader.readInt2();
+      numWarnings = reader.readInt2();
+      _logger.fine('Status Flags: $statusFlags, # of Warnings: $numWarnings');
+    }
+    info = UTF8.decode(reader.readEOFString());
+    if (info.isNotEmpty) {
+      _logger.info('Info: $info');
+    }
+  }
+}
+
+class ERRPacket extends Packet {
+  int errorCode;
+  String sqlStateMarker;
+  String sqlState;
+  String errorMessage;
+
+  ERRPacket.fromPacket(Packet packet, int capabilities) : super(packet.length, packet.sequenceId, packet.payload) {
+    var reader = new BufferReader(packet.payload.sublist(1));
+
+    errorCode = reader.readInt2();
+    sqlStateMarker = UTF8.decode(reader.readBytes(1));
+    sqlState = UTF8.decode(reader.readBytes(5));
+    errorMessage = UTF8.decode(reader.readEOFString());
+  }
+
+  toString() => '#$errorCode ($sqlStateMarker$sqlState): $errorMessage';
 }
