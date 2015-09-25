@@ -29,6 +29,26 @@ main() {
       orderedEquals([0x02, 0x00, 0x00, 0x05, 0x01, 0x02]));
     });
 
+    test('throws error on determining packet type if payload is empty.', () {
+      var packet = new Packet(0, 0, []);
+      expect(() => packet.isOK, throwsStateError);
+      expect(() => packet.isERR, throwsStateError);
+    });
+
+    test('correctly determines packet type', () {
+      var okPacket1 = new Packet(1, 0, [0x00]);
+      var okPacket2 = new Packet(1, 0, [0xFE]);
+      var errPacket = new Packet(1, 0, [0xFF]);
+
+      expect(okPacket1.isOK, isTrue);
+      expect(okPacket2.isOK, isTrue);
+      expect(errPacket.isOK, isFalse);
+
+      expect(okPacket1.isERR, isFalse);
+      expect(okPacket2.isERR, isFalse);
+      expect(errPacket.isERR, isTrue);
+    });
+
     test('equality and hashCode', () {
       var packet1 = new Packet(2, 5, [0x01, 0x02]);
       var packet2 = new Packet(2, 5, [0x01, 0x02]);

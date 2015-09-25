@@ -8,6 +8,7 @@ import 'package:crypto/crypto.dart';
 import 'package:dart_mysql/protocol/buffer_reader.dart';
 import 'package:dart_mysql/protocol/buffer_writer.dart';
 import 'package:dart_mysql/protocol/capability_flags.dart';
+import 'package:dart_mysql/protocol/command_type.dart';
 import 'package:dart_mysql/protocol/packet.dart';
 import 'package:dart_mysql/protocol/server_bus.dart';
 import 'package:logging/logging.dart';
@@ -46,6 +47,10 @@ class Connection {
   final String password;
 
   final String database;
+
+  int _serverCapabilities;
+
+  int _clientCapabilities;
 
   StreamSubscription _packetSubscription;
 
@@ -138,28 +143,28 @@ class Connection {
 
   /// Processes handshake data and returns the proper Handshake Response packet.
   Packet makeResponse(HandshakeData handshake) {
-    var serverCapabilities = handshake.capabilities;
-    if (serverCapabilities & CapabilityFlags.CLIENT_PROTOCOL_41 == 0) {
+    _serverCapabilities = handshake.capabilities;
+    if (_serverCapabilities & CapabilityFlags.CLIENT_PROTOCOL_41 == 0) {
       throw new UnsupportedError('Client versions below 4.1 not supported.');
     }
 
-    var clientCapabilities = CapabilityFlags.CLIENT_PROTOCOL_41 |
+    _clientCapabilities = CapabilityFlags.CLIENT_PROTOCOL_41 |
     CapabilityFlags.CLIENT_LONG_PASSWORD |
     CapabilityFlags.CLIENT_LONG_FLAG |
     CapabilityFlags.CLIENT_TRANSACTIONS |
     CapabilityFlags.CLIENT_SECURE_CONNECTION;
     if (database != null) {
-      clientCapabilities |= CapabilityFlags.CLIENT_CONNECT_WITH_DB;
+      _clientCapabilities |= CapabilityFlags.CLIENT_CONNECT_WITH_DB;
     }
 
     var writer = new BufferWriter();
-    writer.writeInt4(clientCapabilities);
+    writer.writeInt4(_clientCapabilities);
     writer.writeInt4(0x01000000);
     writer.writeInt1(handshake.characterSet);
     writer.fill(23);
     writer.writeNullTerminatedString(username);
 
-    if (serverCapabilities & CapabilityFlags.CLIENT_SECURE_CONNECTION > 0) {
+    if (_serverCapabilities & CapabilityFlags.CLIENT_SECURE_CONNECTION > 0) {
       var hash = hashPassword(password, handshake.authPluginData);
       writer.writeInt1(hash.length);
       writer.writeBytes(hash);
@@ -169,7 +174,7 @@ class Connection {
       writer.writeNullTerminatedString(database);
     }
 
-    if (serverCapabilities & CapabilityFlags.CLIENT_PLUGIN_AUTH > 0) {
+    if (_serverCapabilities & CapabilityFlags.CLIENT_PLUGIN_AUTH > 0) {
       writer.writeNullTerminatedString(handshake.authPluginName);
     }
 
@@ -209,15 +214,33 @@ class Connection {
 
   /// Connects to the server and completes the client/server handshake.
   Future connect() async {
+    var handshakePacketFuture = _bus.stream.first;
+    var responsePacketFuture = _bus.stream.first;
+
     await _bus.connected;
-    doHandshake(await _bus.stream.first);
-    _packetSubscription = _bus.stream.listen(onPacket);
+
+    doHandshake(await handshakePacketFuture);
+
+    var handshakeResponsePacket = await responsePacketFuture;
+    if (!handshakeResponsePacket.isOK) {
+      // TODO(eugene-bulkin): Print actual MySQL error message from ERR_Packet here.
+      throw new StateError('Unable to complete handshake.');
+    }
+    _packetSubscription = _bus.stream.listen(onPacket, onDone: close);
     return new Future.value(true);
   }
 
+  Future quit() async {
+    _bus.sendPacket(new Packet(1, 0, [CommandType.COM_QUIT]));
+  }
+
   Future close() async {
-    await _bus.close();
-    if (_packetSubscription != null) await _packetSubscription.cancel();
+    _logger.finest('Closing Connection.');
+    await quit();
+    if (_packetSubscription != null) {
+      await _packetSubscription.cancel();
+      _packetSubscription = null;
+    }
   }
 
   /// Handles packets coming in from the [ServerBus].

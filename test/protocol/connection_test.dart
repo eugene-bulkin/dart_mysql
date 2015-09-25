@@ -158,7 +158,7 @@ main() {
     Connection conn;
 
     setUp(() async {
-      controller = new StreamController<Packet>(sync: true);
+      controller = new StreamController<Packet>.broadcast(sync: true);
       bus = new FakeServerBus(controller);
       conn = new Connection.fromBus(bus, username);
     });
@@ -303,9 +303,11 @@ main() {
       });
 
       test('throws error on wrong protocol', () async {
+        var connFuture = conn.connect();
+        await bus.connected;
         controller.add(new Packet.fromBuffer([0x01, 0x00, 0x00, 0x00, 0x09]));
-        expect(conn.connect(), throwsA(new isInstanceOf<UnsupportedError>()));
-      });
+        expect(connFuture, throwsA(new isInstanceOf<UnsupportedError>()));
+      }, timeout: new Timeout(const Duration(seconds: 5)));
     });
 
     group('hashes passwords correctly', () {
@@ -453,12 +455,22 @@ main() {
     });
 
     test('does handshake correctly', () async {
+      var eventFuture = controller.stream.first;
       conn.doHandshake(authHandshakePacket);
 
       var expected =
       conn.makeResponse(conn.parseHandshake(authHandshakePacket.payload));
 
-      expect(await controller.stream.first, equals(expected));
-    });
+      expect(await eventFuture, equals(expected));
+    }, timeout: new Timeout(const Duration(seconds: 5)));
+
+    test('throws error when handshake fails', () async {
+      var connFuture = conn.connect();
+      await bus.connected;
+      controller.add(authHandshakePacket);
+      controller.add(new Packet(1, 0, [0xFF]));
+
+      expect(connFuture, throwsStateError);
+    }, timeout: new Timeout(const Duration(seconds: 5)));
   });
 }

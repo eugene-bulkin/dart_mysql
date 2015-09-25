@@ -2,6 +2,7 @@ library dart_mysql.protocol.packet;
 
 import 'package:dart_mysql/protocol/buffer_reader.dart';
 import 'package:dart_mysql/protocol/buffer_writer.dart';
+import 'package:quiver/check.dart';
 import 'package:quiver/core.dart';
 import 'package:quiver/collection.dart';
 
@@ -44,6 +45,22 @@ class Packet {
     }
     buffer.removeRange(0, 3 + 1 + payloadLength);
     return new Packet(payloadLength, sequenceId, payload);
+  }
+
+  /// Whether this is an OK Packet or not.
+  ///
+  /// See [MySQL Internals 14.1.3.1](http://dev.mysql.com/doc/internals/en/packet-OK_Packet.html).
+  bool get isOK {
+    checkState(payload.isNotEmpty, message: 'No packet payload to determine packet status.');
+    return payload.first == 0x00 || payload.first == 0xFE;
+  }
+
+  /// Whether this is an Err Packet or not.
+  ///
+  /// See [MySQL Internals 14.1.3.2](http://dev.mysql.com/doc/internals/en/packet-ERR_Packet.html).
+  bool get isERR {
+    checkState(payload.isNotEmpty, message: 'No packet payload to determine packet status.');
+    return payload.first == 0xFF;
   }
 
   /// Returns a byte buffer corresponding to the [Packet].

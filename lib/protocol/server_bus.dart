@@ -4,9 +4,12 @@ import 'dart:io';
 import 'dart:async';
 
 import 'package:dart_mysql/protocol/packet.dart';
+import 'package:logging/logging.dart';
 
 /// An event bus used for receiving packets from the server and sending packets from the client.
 class ServerBus {
+  final _logger = new Logger('dart_mysql.protocol.ServerBus');
+
   Socket _socket;
 
   StreamSubscription _bufferSubscription;
@@ -34,7 +37,10 @@ class ServerBus {
     Socket.connect(host, port).then((socket) async {
       _socket = socket;
       completer.complete(true);
-      _bufferSubscription = _socket.listen(processBuffer);
+      _bufferSubscription = _socket.listen(processBuffer, onDone: () async {
+        _logger.finest('Socket closed.');
+        await close();
+      });
     }, onError: completer.completeError);
   }
 
@@ -55,8 +61,15 @@ class ServerBus {
 
   /// Closes all connections and subscriptions.
   Future close() async {
+    _logger.finest('Closing ServerBus.');
     await _controller.close();
-    if (_socket != null) await _socket.close();
-    if (_bufferSubscription != null) await _bufferSubscription.cancel();
+    if (_socket != null) {
+      await _socket.close();
+      _socket = null;
+    }
+    if (_bufferSubscription != null) {
+      await _bufferSubscription.cancel();
+      _bufferSubscription = null;
+    }
   }
 }
