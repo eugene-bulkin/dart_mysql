@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 pub run test
 
 if [ "$REPO_TOKEN" ]; then
@@ -6,5 +7,5 @@ if [ "$REPO_TOKEN" ]; then
     --token $REPO_TOKEN \
     --retry 2 \
     --exclude-test-files \
-    test/**/*
+    test/all_tests.dart
 fi
