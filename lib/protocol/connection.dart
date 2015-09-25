@@ -188,7 +188,15 @@ class Connection {
     _bus.sendPacket(responsePacket);
   }
 
-  Connection(this._bus, this.username, {this.password, this.database}) {
+  factory Connection(String host, int port, String username, {String password, String database}) {
+    var bus = new ServerBus(host, port);
+
+    var connection = new Connection.fromBus(bus, username, password: password, database: database);
+
+    return connection;
+  }
+
+  Connection.fromBus(this._bus, this.username, {this.password, this.database}) {
     checkNotNull(_bus);
     checkNotNull(username);
   }

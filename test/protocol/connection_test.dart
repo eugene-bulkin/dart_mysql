@@ -160,13 +160,13 @@ main() {
     setUp(() async {
       controller = new StreamController<Packet>(sync: true);
       bus = new FakeServerBus(controller);
-      conn = new Connection(bus, username);
+      conn = new Connection.fromBus(bus, username);
     });
 
     test('throws error when connection missing bus or username', () {
-      expect(() => new Connection(null, username), throwsArgumentError);
+      expect(() => new Connection.fromBus(null, username), throwsArgumentError);
       expect(
-              () => new Connection(
+              () => new Connection.fromBus(
               new FakeServerBus(new StreamController<Packet>()), null),
           throwsArgumentError);
     });
@@ -344,7 +344,7 @@ main() {
       });
 
       test('correctly creates response with DB', () {
-        var conn = new Connection(bus, username, database: database);
+        var conn = new Connection.fromBus(bus, username, database: database);
         var characterSet = 0x08;
         var handshake = new HandshakeData(null, null,
         CapabilityFlags.CLIENT_PROTOCOL_41, characterSet, null, null, null);
@@ -364,7 +364,7 @@ main() {
       });
 
       test('correctly creates response with password', () {
-        var conn = new Connection(bus, username, password: password);
+        var conn = new Connection.fromBus(bus, username, password: password);
         var characterSet = 0x08;
         var handshake = new HandshakeData(
             null,
@@ -391,7 +391,7 @@ main() {
       });
 
       test('correctly creates response with plugin name', () {
-        var conn = new Connection(bus, username, password: password);
+        var conn = new Connection.fromBus(bus, username, password: password);
         var characterSet = 0x08;
         var handshake = new HandshakeData(
             null,
@@ -420,7 +420,7 @@ main() {
       });
 
       test('correctly creates response with all information', () {
-        var conn = new Connection(bus, username,
+        var conn = new Connection.fromBus(bus, username,
         password: password, database: database);
         var characterSet = 0x08;
         var handshake = new HandshakeData(
@@ -455,7 +455,8 @@ main() {
     test('does handshake correctly', () async {
       conn.doHandshake(authHandshakePacket);
 
-      var expected = conn.makeResponse(conn.parseHandshake(authHandshakePacket.payload));
+      var expected =
+      conn.makeResponse(conn.parseHandshake(authHandshakePacket.payload));
 
       expect(await controller.stream.first, equals(expected));
     });
