@@ -19,6 +19,13 @@ class BufferWriter {
     }
   }
 
+  /// Adds [length] bits of [value] to buffer.
+  void fill(int length, {int value: 0}) {
+    var pos = buffer.length;
+    buffer.addAll(new List<int>(length));
+    buffer.fillRange(pos, pos + length, value);
+  }
+
   /// Writes an int<1> to the buffer.
   ///
   /// See [MySQL Internals 14.1.1.1.1](http://dev.mysql.com/doc/internals/en/integer.html#fixed-length-integer). The
@@ -96,7 +103,7 @@ class BufferWriter {
   /// Writes a string<NUL> to the buffer.
   ///
   /// See [MySQL Internals 14.1.1.2](http://dev.mysql.com/doc/internals/en/string.html#packet-Protocol::NulTerminatedString).
-  void writeNullTerminateString(String string) {
+  void writeNullTerminatedString(String string) {
     writeString(string);
     writeBytes([0x00]);
   }

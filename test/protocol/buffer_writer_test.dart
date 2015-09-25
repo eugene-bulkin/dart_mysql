@@ -19,6 +19,12 @@ main() {
       expect(() => writer.writeLenencInt(-1), throwsArgumentError);
     });
 
+    test('fills buffer', () {
+      writer.fill(3);
+      writer.fill(3, value: 5);
+      expect(writer.buffer, orderedEquals([0, 0, 0, 5, 5, 5]));
+    });
+
     test('writes int<1>', () {
       writer.writeInt1(0x30);
       expect(writer.buffer, orderedEquals([0x30]));
@@ -92,7 +98,7 @@ main() {
     });
 
     test('writes string<NUL>', () {
-      writer.writeNullTerminateString('foo');
+      writer.writeNullTerminatedString('foo');
       expect(writer.buffer, orderedEquals([0x66, 0x6f, 0x6f, 0x00]));
     });
   });
