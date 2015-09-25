@@ -49,6 +49,9 @@ class Connection {
 
   StreamSubscription _packetSubscription;
 
+  /// Hashes the password provided with the auth scramble to create the authentication hash.
+  ///
+  /// See [MySQL Internals 14.3.3](http://dev.mysql.com/doc/internals/en/secure-password-authentication.html).
   static List<int> hashPassword(String password, List<int> scramble) {
     if (password == null) {
       return [];
@@ -133,6 +136,7 @@ class Connection {
     characterSet, statusFlags, authPluginData, authPluginName);
   }
 
+  /// Processes handshake data and returns the proper Handshake Response packet.
   Packet makeResponse(HandshakeData handshake) {
     var serverCapabilities = handshake.capabilities;
     if (serverCapabilities & CapabilityFlags.CLIENT_PROTOCOL_41 == 0) {
@@ -188,10 +192,12 @@ class Connection {
     _bus.sendPacket(responsePacket);
   }
 
-  factory Connection(String host, int port, String username, {String password, String database}) {
+  factory Connection(String host, int port, String username,
+                     {String password, String database}) {
     var bus = new ServerBus(host, port);
 
-    var connection = new Connection.fromBus(bus, username, password: password, database: database);
+    var connection = new Connection.fromBus(bus, username,
+    password: password, database: database);
 
     return connection;
   }
