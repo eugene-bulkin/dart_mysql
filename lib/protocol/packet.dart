@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:dart_mysql/protocol/buffer_reader.dart';
 import 'package:dart_mysql/protocol/buffer_writer.dart';
+import 'package:dart_mysql/protocol/capability_flags.dart';
 import 'package:quiver/check.dart';
 import 'package:quiver/core.dart';
 import 'package:quiver/collection.dart';
@@ -104,16 +105,11 @@ class OKPacket extends Packet {
 
     affectedRows = reader.readLenencInt();
     lastInsertId = reader.readLenencInt();
-    _logger.info('Affected Rows: $affectedRows, Last Insert ID: $lastInsertId');
-    if (_clientCapabilities & CapabilityFlags.CLIENT_PROTOCOL_41 > 0) {
+    if (capabilities & CapabilityFlags.CLIENT_PROTOCOL_41 > 0) {
       statusFlags = reader.readInt2();
       numWarnings = reader.readInt2();
-      _logger.fine('Status Flags: $statusFlags, # of Warnings: $numWarnings');
     }
     info = UTF8.decode(reader.readEOFString());
-    if (info.isNotEmpty) {
-      _logger.info('Info: $info');
-    }
   }
 }
 
@@ -124,6 +120,7 @@ class ERRPacket extends Packet {
   String errorMessage;
 
   ERRPacket.fromPacket(Packet packet, int capabilities) : super(packet.length, packet.sequenceId, packet.payload) {
+    checkArgument(packet.isERR, message: 'Cannot create ERRPacket from a non-ERR Packet');
     var reader = new BufferReader(packet.payload.sublist(1));
 
     errorCode = reader.readInt2();

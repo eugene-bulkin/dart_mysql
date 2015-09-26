@@ -1,3 +1,5 @@
+import 'package:dart_mysql/protocol/buffer_writer.dart';
+import 'package:dart_mysql/protocol/capability_flags.dart';
 import 'package:dart_mysql/protocol/packet.dart';
 import 'package:test/test.dart';
 import 'package:quiver/testing/equality.dart';
@@ -12,6 +14,15 @@ main() {
       throwsArgumentError);
       expect(() => new Packet.fromBuffer([0x02, 0x00, 0x00, 0x05, 0x01]),
       throwsArgumentError);
+    });
+
+    test('outputs correct string', () {
+      var sequenceId = 5;
+      var payload = [0x01, 0x02];
+      var packet = new Packet(2, sequenceId, payload);
+      var expected = 'Packet($sequenceId)[${payload.join(' ')}]';
+
+      expect(packet.toString(), equals(expected));
     });
 
     test('can be constructed from buffer', () {
@@ -62,6 +73,80 @@ main() {
         'packet2': [packet3, packet4],
         'packet3': [packet5, packet6],
       }, areEqualityGroups);
+    });
+  });
+
+  group('OKPacket', () {
+    const affectedRows = 5;
+    const lastInsertId = 1;
+    const statusFlags = 0x0002;
+    const numWarnings = 10;
+    const info = 'foo bar';
+    Packet packet;
+
+    setUp(() {
+      var writer = new BufferWriter();
+      writer.writeInt1(0x00); // error packet
+      writer.writeLenencInt(affectedRows);
+      writer.writeLenencInt(lastInsertId);
+      writer.writeInt2(statusFlags);
+      writer.writeInt2(numWarnings);
+      writer.writeString(info);
+      packet = new Packet(writer.buffer.length, 0, writer.buffer);
+    });
+
+    test('fails on non-OK packets', () {
+      expect(() => new OKPacket.fromPacket(new Packet(1, 0, [0xFF]), 0),
+      throwsArgumentError);
+    });
+
+    test('can be created from Packet', () {
+      var okPacket = new OKPacket.fromPacket(packet, CapabilityFlags.CLIENT_PROTOCOL_41);
+
+      expect(okPacket.affectedRows, equals(affectedRows));
+      expect(okPacket.lastInsertId, equals(lastInsertId));
+      expect(okPacket.statusFlags, equals(statusFlags));
+      expect(okPacket.numWarnings, equals(numWarnings));
+      expect(okPacket.info, equals(info));
+    });
+  });
+
+  group('ERRPacket', () {
+    const errorCode = 5000;
+    const sqlStateMarker = '#';
+    const sqlState = 'foo\x00\x00';
+    const errorMessage = 'bar baz';
+    Packet packet;
+
+    setUp(() {
+      var writer = new BufferWriter();
+      writer.writeInt1(0xFF); // error packet
+      writer.writeInt2(errorCode);
+      writer.writeFixedString(sqlStateMarker, 1);
+      writer.writeFixedString(sqlState, 5);
+      writer.writeString(errorMessage);
+      packet = new Packet(writer.buffer.length, 0, writer.buffer);
+    });
+
+    test('fails on non-error packets', () {
+      expect(() => new ERRPacket.fromPacket(new Packet(1, 0, [0x00]), 0),
+      throwsArgumentError);
+    });
+
+    test('can be created from Packet', () {
+      var errPacket = new ERRPacket.fromPacket(packet, 0);
+
+      expect(errPacket.errorCode, equals(errorCode));
+      expect(errPacket.sqlStateMarker, equals(sqlStateMarker));
+      expect(errPacket.sqlState, equals(sqlState));
+      expect(errPacket.errorMessage, equals(errorMessage));
+    });
+
+    test('outputs correct string', () {
+      var errPacket = new ERRPacket.fromPacket(packet, 0);
+      var expected = '#$errorCode ($sqlStateMarker$sqlState): $errorMessage';
+
+      expect(errPacket.toString(), equals(expected));
     });
   });
 }

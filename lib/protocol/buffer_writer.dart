@@ -87,10 +87,23 @@ class BufferWriter {
   /// Writes [length] bytes to the buffer.
   void writeBytes(List<int> bytes) => buffer.addAll(bytes);
 
-  /// Writes a string<fix> or string<EOF> to the buffer.
+  /// Writes a string<EOF> to the buffer.
+  ///
+  /// See [MySQL Internals 14.1.1.2](http://dev.mysql.com/doc/internals/en/string.html#packet-Protocol::RestOfPacketString).
+  void writeString(String string) => writeBytes(UTF8.encode(string));
+
+  /// Writes a string<fix> to the buffer.
   ///
   /// See [MySQL Internals 14.1.1.2](http://dev.mysql.com/doc/internals/en/string.html#packet-Protocol::FixedLengthString).
-  void writeString(String string) => writeBytes(UTF8.encode(string));
+  void writeFixedString(String string, int length) {
+    checkArgument(string.length <= length,
+    message: 'String longer than the provided length.');
+    var bytes = UTF8.encode(string).toList(growable: true);
+    while (bytes.length < length) {
+      bytes.add(0);
+    }
+    writeBytes(bytes);
+  }
 
   /// Writes a string<lenenc> to the buffer.
   ///

@@ -88,6 +88,11 @@ main() {
     });
 
     test('writes string<fix>', () {
+      writer.writeFixedString('foo', 5);
+      expect(writer.buffer, orderedEquals([0x66, 0x6f, 0x6f, 0x00, 0x00]));
+    });
+
+    test('writes string<EOF>', () {
       writer.writeString('foo');
       expect(writer.buffer, orderedEquals([0x66, 0x6f, 0x6f]));
     });
