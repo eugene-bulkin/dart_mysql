@@ -15,7 +15,7 @@ class BufferReader {
   /// Reads [length] bytes from the buffer.
   List<int> readBytes(int length) {
     checkState(_ptr + length <= _buffer.length,
-    message: 'attempted to read past end of buffer');
+        message: 'attempted to read past end of buffer');
     var result = _buffer.sublist(_ptr, _ptr + length);
     _ptr += length;
     return result;

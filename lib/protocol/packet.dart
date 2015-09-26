@@ -54,7 +54,8 @@ class Packet {
   ///
   /// See [MySQL Internals 14.1.3.1](http://dev.mysql.com/doc/internals/en/packet-OK_Packet.html).
   bool get isOK {
-    checkState(payload.isNotEmpty, message: 'No packet payload to determine packet status.');
+    checkState(payload.isNotEmpty,
+        message: 'No packet payload to determine packet status.');
     return payload.first == 0x00 || payload.first == 0xFE;
   }
 
@@ -62,7 +63,8 @@ class Packet {
   ///
   /// See [MySQL Internals 14.1.3.2](http://dev.mysql.com/doc/internals/en/packet-ERR_Packet.html).
   bool get isERR {
-    checkState(payload.isNotEmpty, message: 'No packet payload to determine packet status.');
+    checkState(payload.isNotEmpty,
+        message: 'No packet payload to determine packet status.');
     return payload.first == 0xFF;
   }
 
@@ -84,8 +86,8 @@ class Packet {
     if (other is! Packet) return false;
 
     return length == other.length &&
-    sequenceId == other.sequenceId &&
-    listsEqual(payload, other.payload);
+        sequenceId == other.sequenceId &&
+        listsEqual(payload, other.payload);
   }
 
   toString() => 'Packet($sequenceId)[${payload.join(' ')}]';
@@ -98,8 +100,10 @@ class OKPacket extends Packet {
   int numWarnings = 0;
   String info;
 
-  OKPacket.fromPacket(Packet packet, int capabilities) : super(packet.length, packet.sequenceId, packet.payload) {
-    checkArgument(packet.isOK, message: 'Cannot create OKPacket from a non-OK Packet');
+  OKPacket.fromPacket(Packet packet, int capabilities)
+      : super(packet.length, packet.sequenceId, packet.payload) {
+    checkArgument(packet.isOK,
+        message: 'Cannot create OKPacket from a non-OK Packet');
 
     var reader = new BufferReader(packet.payload.sublist(1));
 
@@ -119,8 +123,10 @@ class ERRPacket extends Packet {
   String sqlState;
   String errorMessage;
 
-  ERRPacket.fromPacket(Packet packet, int capabilities) : super(packet.length, packet.sequenceId, packet.payload) {
-    checkArgument(packet.isERR, message: 'Cannot create ERRPacket from a non-ERR Packet');
+  ERRPacket.fromPacket(Packet packet, int capabilities)
+      : super(packet.length, packet.sequenceId, packet.payload) {
+    checkArgument(packet.isERR,
+        message: 'Cannot create ERRPacket from a non-ERR Packet');
     var reader = new BufferReader(packet.payload.sublist(1));
 
     errorCode = reader.readInt2();

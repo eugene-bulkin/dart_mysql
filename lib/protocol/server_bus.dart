@@ -29,9 +29,9 @@ class ServerBus {
   Stream<Packet> get stream => _controller.stream;
 
   ServerBus(this.host, this.port, {StreamController controller})
-  : _controller = (controller == null)
-  ? new StreamController<Packet>.broadcast()
-  : controller {
+      : _controller = (controller == null)
+            ? new StreamController<Packet>.broadcast()
+            : controller {
     var completer = new Completer();
     _connected = completer.future;
     Socket.connect(host, port).then((socket) async {

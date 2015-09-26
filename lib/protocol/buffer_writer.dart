@@ -10,7 +10,7 @@ class BufferWriter {
 
   void _writeInt(int length, int value) {
     checkArgument(value < 1 << (8 * length) && value >= 0,
-    message: '$value out of range for int<$length>.');
+        message: '$value out of range for int<$length>.');
     var i = 0;
     while (i < length) {
       buffer.add(value % 256);
@@ -69,7 +69,7 @@ class BufferWriter {
   /// bytes are stored in little-endian.
   void writeLenencInt(int value) {
     checkArgument(value < 1 << 64 && value >= 0,
-    message: '$value out of range for int<lenenc>.');
+        message: '$value out of range for int<lenenc>.');
     if (value < 251) {
       buffer.add(value);
     } else if (value < 1 << 16) {
@@ -97,7 +97,7 @@ class BufferWriter {
   /// See [MySQL Internals 14.1.1.2](http://dev.mysql.com/doc/internals/en/string.html#packet-Protocol::FixedLengthString).
   void writeFixedString(String string, int length) {
     checkArgument(string.length <= length,
-    message: 'String longer than the provided length.');
+        message: 'String longer than the provided length.');
     var bytes = UTF8.encode(string).toList(growable: true);
     while (bytes.length < length) {
       bytes.add(0);
