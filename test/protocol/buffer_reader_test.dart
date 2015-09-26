@@ -8,6 +8,17 @@ main() {
       buffer = [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08];
     });
 
+    test('correctly determines when there is more buffer to read', () {
+      var reader = new BufferReader([0, 1, 2]);
+      expect(reader.hasMore, isTrue);
+
+      reader.readBytes(2);
+      expect(reader.hasMore, isTrue);
+
+      reader.readBytes(1);
+      expect(reader.hasMore, isFalse);
+    });
+
     test('throws error when reading int past end of buffer', () {
       var reader = new BufferReader(buffer);
       expect(() => reader.readInt8(), returnsNormally);
