@@ -11,6 +11,8 @@ import 'package:dart_mysql/protocol/capability_flags.dart';
 import 'package:dart_mysql/protocol/command_type.dart';
 import 'package:dart_mysql/protocol/packet.dart';
 import 'package:dart_mysql/protocol/server_bus.dart';
+import 'package:dart_mysql/query/query_handler.dart';
+import 'package:dart_mysql/query/result_row.dart';
 import 'package:logging/logging.dart';
 import 'package:quiver/check.dart';
 
@@ -54,6 +56,8 @@ class Connection {
 
   StreamSubscription _packetSubscription;
 
+  QueryHandler _queryHandler;
+
   /// Hashes the password provided with the auth scramble to create the authentication hash.
   ///
   /// See [MySQL Internals 14.3.3](http://dev.mysql.com/doc/internals/en/secure-password-authentication.html).
@@ -65,8 +69,7 @@ class Connection {
     hasher.add(UTF8.encode(password));
     var hashedPassword = hasher.close();
 
-    hasher = new SHA1()
-      ..add(hashedPassword);
+    hasher = new SHA1()..add(hashedPassword);
     var doubleHashedPassword = hasher.close();
 
     hasher = new SHA1();
@@ -138,7 +141,7 @@ class Connection {
     _logger.finest('Auth plugin: $authPluginName. Auth data: $authPluginData.');
 
     return new HandshakeData(serverVersion, connectionId, capabilities,
-    characterSet, statusFlags, authPluginData, authPluginName);
+        characterSet, statusFlags, authPluginData, authPluginName);
   }
 
   /// Processes handshake data and returns the proper Handshake Response packet.
@@ -149,10 +152,10 @@ class Connection {
     }
 
     _clientCapabilities = CapabilityFlags.CLIENT_PROTOCOL_41 |
-    CapabilityFlags.CLIENT_LONG_PASSWORD |
-    CapabilityFlags.CLIENT_LONG_FLAG |
-    CapabilityFlags.CLIENT_TRANSACTIONS |
-    CapabilityFlags.CLIENT_SECURE_CONNECTION;
+        CapabilityFlags.CLIENT_LONG_PASSWORD |
+        CapabilityFlags.CLIENT_LONG_FLAG |
+        CapabilityFlags.CLIENT_TRANSACTIONS |
+        CapabilityFlags.CLIENT_SECURE_CONNECTION;
     if (database != null) {
       _clientCapabilities |= CapabilityFlags.CLIENT_CONNECT_WITH_DB;
     }
@@ -198,11 +201,11 @@ class Connection {
   }
 
   factory Connection(String host, int port, String username,
-                     {String password, String database}) {
+      {String password, String database}) {
     var bus = new ServerBus(host, port);
 
     var connection = new Connection.fromBus(bus, username,
-    password: password, database: database);
+        password: password, database: database);
 
     return connection;
   }
@@ -223,20 +226,46 @@ class Connection {
 
     var handshakeResponsePacket = await responsePacketFuture;
     if (!handshakeResponsePacket.isOK) {
-      var errPacket = new ERRPacket.fromPacket(handshakeResponsePacket, _clientCapabilities);
+      var errPacket = new ERRPacket.fromPacket(
+          handshakeResponsePacket, _clientCapabilities);
       throw new StateError('Unable to complete handshake: $errPacket');
     }
     _packetSubscription = _bus.stream.listen(onPacket, onDone: close);
     return new Future.value(true);
   }
 
+  /// Sends a quit command to the server.
   Future quit() async {
     _bus.sendPacket(new Packet(1, 0, [CommandType.COM_QUIT]));
   }
 
+  /// Sends a query command to the server. Returns a Future that completes when the query is done with a result set
+  /// inside.
+  Future<List<ResultRow>> query(String query) async {
+    var writer = new BufferWriter();
+    writer.writeInt1(CommandType.COM_QUERY);
+    writer.writeString(query);
+    _queryHandler = new QueryHandler(_clientCapabilities);
+    _bus.sendPacket(new Packet(writer.buffer.length, 0, writer.buffer));
+    return _queryHandler.done.then((result) {
+      _queryHandler = null;
+      return result;
+    });
+  }
+
+  /// Closes all connections and subscriptions.
+  ///
+  /// If there is a query going on, this waits for the query to complete.
   Future close() async {
     _logger.finest('Closing Connection.');
+
+    // Wait for current query to finish.
+    if (_queryHandler != null) {
+      await _queryHandler.done;
+    }
+
     await quit();
+
     if (_packetSubscription != null) {
       await _packetSubscription.cancel();
       _packetSubscription = null;
@@ -245,6 +274,9 @@ class Connection {
 
   /// Handles packets coming in from the [ServerBus].
   void onPacket(Packet packet) {
+    if (_queryHandler != null) {
+      _queryHandler.handlePacket(packet);
+    }
     // TODO(eugene-bulkin): Handle all packets here.
   }
 }
