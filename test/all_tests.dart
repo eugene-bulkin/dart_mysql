@@ -11,5 +11,5 @@ void main() {
   protocol__buffer_writer_test.main();
   protocol__connection_test.main();
   protocol__packet_test.main();
-  //protocol__server_bus_test.main();
+  protocol__server_bus_test.main();
 }

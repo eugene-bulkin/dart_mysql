@@ -27,6 +27,9 @@ main() {
     });
 
     tearDown(() async {
+      socket.destroy();
+      await socket.close();
+
       await serverSocket.close();
     });
 
