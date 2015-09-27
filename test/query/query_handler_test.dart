@@ -18,10 +18,11 @@ main() {
       handler = new QueryHandler(CapabilityFlags.CLIENT_PROTOCOL_41);
     });
 
-    test('does nothing on OK Packet', () {
+    test('ends on OK Packet', () async {
+      var future = handler.done;
       handler.handlePacket(new Packet(1, 0, [0x00]));
-      expect(handler.status, equals(QueryStatus.waiting));
-    });
+      expect(await future, isEmpty);
+    }, timeout: new Timeout(const Duration(seconds: 5)));
 
     test('throws state error on ERR Packet', () {
       expect(
@@ -100,6 +101,6 @@ main() {
 
       expect(row1[0], equals(value1));
       expect(row2[0], equals(value2));
-    });
+    }, timeout: new Timeout(const Duration(seconds: 5)));
   });
 }

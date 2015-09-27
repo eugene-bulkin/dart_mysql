@@ -47,7 +47,8 @@ class QueryHandler {
   /// Handles a packet coming as a response during the query.
   void handlePacket(Packet packet) {
     if (packet.payload.first == 0x00) {
-      // OK Packet, do nothing.
+      // OK Packet, so nothing to reply with.
+      _completer.complete([]);
       return;
     } else if (packet.payload.first == 0xFF) {
       // ERR Packet, so throw error.
