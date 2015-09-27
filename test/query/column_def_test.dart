@@ -2,6 +2,7 @@ import 'package:dart_mysql/protocol/buffer_writer.dart';
 import 'package:dart_mysql/protocol/column_type.dart';
 import 'package:dart_mysql/protocol/packet.dart';
 import 'package:dart_mysql/query/column_def.dart';
+import 'package:dart_mysql/testing/utils.dart';
 import 'package:test/test.dart';
 
 main() {
@@ -21,21 +22,13 @@ main() {
     Packet packet;
 
     setUp(() {
-      var writer = new BufferWriter();
-      writer.writeLenencString('def');
-      writer.writeLenencString(schema);
-      writer.writeLenencString(virtualTable);
-      writer.writeLenencString(table);
-      writer.writeLenencString(virtualColumnName);
-      writer.writeLenencString(columnName);
-      writer.writeLenencInt(0x0c);
-      writer.writeInt2(characterSet);
-      writer.writeInt4(columnLength);
-      writer.writeInt1(columnType.value);
-      writer.writeInt2(flags);
-      writer.writeInt1(decimals);
-      writer.fill(2);
-      packet = new Packet(writer.buffer.length, 2, writer.buffer);
+      packet = createColumnDefPacket(
+          schema, table, columnName, columnLength, columnType,
+          virtualColumnName: virtualColumnName,
+          virtualTableName: virtualTable,
+          characterSet: characterSet,
+          flags: flags,
+          decimals: decimals);
     });
 
     test('correctly creates ColumnDef', () {

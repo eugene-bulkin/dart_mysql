@@ -33,6 +33,9 @@ class QueryHandler {
 
   QueryHandler(this._capabilities);
 
+  /// Current step in the process.
+  QueryStatus get status => _queryStatus;
+
   /// Whether the query is ready or not.
   Future<List<ResultRow>> get done => _completer.future;
 
@@ -61,7 +64,7 @@ class QueryHandler {
     }
     // Column count has been received, so read in column definitions.
     if (_queryStatus == QueryStatus.columnCount) {
-      // If the OK packet is received, column definitions are done coming in.
+      // If the EOF packet is received, column definitions are done coming in.
       if (packet.isOK) {
         checkState(_columnDefs.length == _columnCount,
             message: 'Incorrect number of columns');
