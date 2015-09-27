@@ -57,10 +57,10 @@ class ColumnDef {
   }
 
   ColumnDef(this.schema, this.tableName, this.columnName, this.columnLength,
-            this.columnType,
-            {this.virtualTableName,
+      this.columnType,
+      {this.virtualTableName,
       this.virtualColumnName,
-            this.characterSet: 33,
-            this.flags: 0x0000,
-            this.decimals: 0});
+      this.characterSet: 33,
+      this.flags: 0x0000,
+      this.decimals: 0});
 }

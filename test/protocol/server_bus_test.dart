@@ -46,9 +46,7 @@ main() {
 
     test('processes consecutive buffers correctly', () async {
       var combined = [];
-      combined
-        ..addAll(buffer1)
-        ..addAll(buffer2);
+      combined..addAll(buffer1)..addAll(buffer2);
       socket.add(combined);
 
       var result1 = await controller.stream.first;

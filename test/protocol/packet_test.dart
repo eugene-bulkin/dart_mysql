@@ -9,11 +9,11 @@ main() {
     test('throws error on malformed packets', () {
       expect(() => new Packet.fromBuffer([0x02]), throwsArgumentError);
       expect(
-              () => new Packet.fromBuffer([0x02, 0x00, 0x00]), throwsArgumentError);
+          () => new Packet.fromBuffer([0x02, 0x00, 0x00]), throwsArgumentError);
       expect(() => new Packet.fromBuffer([0x02, 0x00, 0x00, 0x05]),
-      throwsArgumentError);
+          throwsArgumentError);
       expect(() => new Packet.fromBuffer([0x02, 0x00, 0x00, 0x05, 0x01]),
-      throwsArgumentError);
+          throwsArgumentError);
     });
 
     test('outputs correct string', () {
@@ -37,7 +37,7 @@ main() {
     test('creates correct byte data', () {
       var packet = new Packet(2, 5, [0x01, 0x02]);
       expect(packet.toBytes(),
-      orderedEquals([0x02, 0x00, 0x00, 0x05, 0x01, 0x02]));
+          orderedEquals([0x02, 0x00, 0x00, 0x05, 0x01, 0x02]));
     });
 
     test('throws error on determining packet type if payload is empty.', () {
@@ -97,12 +97,12 @@ main() {
 
     test('fails on non-OK packets', () {
       expect(() => new OKPacket.fromPacket(new Packet(1, 0, [0xFF]), 0),
-      throwsArgumentError);
+          throwsArgumentError);
     });
 
     test('can be created from Packet', () {
       var okPacket =
-      new OKPacket.fromPacket(packet, CapabilityFlags.CLIENT_PROTOCOL_41);
+          new OKPacket.fromPacket(packet, CapabilityFlags.CLIENT_PROTOCOL_41);
 
       expect(okPacket.affectedRows, equals(affectedRows));
       expect(okPacket.lastInsertId, equals(lastInsertId));
@@ -131,7 +131,7 @@ main() {
 
     test('fails on non-error packets', () {
       expect(() => new ERRPacket.fromPacket(new Packet(1, 0, [0x00]), 0),
-      throwsArgumentError);
+          throwsArgumentError);
     });
 
     test('can be created from Packet', () {

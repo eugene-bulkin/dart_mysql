@@ -11,7 +11,7 @@ main() {
       var buffer = UTF8.encode(value);
 
       expect(TypeParser.parseText(ColumnType.MYSQL_TYPE_VAR_STRING, buffer),
-      equals(value));
+          equals(value));
     });
 
     test('parses ints correctly', () {
@@ -19,11 +19,11 @@ main() {
       var buffer = UTF8.encode(value.toString());
 
       expect(TypeParser.parseText(ColumnType.MYSQL_TYPE_TINY, buffer) as int,
-      equals(value));
+          equals(value));
       expect(TypeParser.parseText(ColumnType.MYSQL_TYPE_SHORT, buffer) as int,
-      equals(value));
+          equals(value));
       expect(TypeParser.parseText(ColumnType.MYSQL_TYPE_LONG, buffer) as int,
-      equals(value));
+          equals(value));
       expect(
           TypeParser.parseText(ColumnType.MYSQL_TYPE_LONGLONG, buffer) as int,
           equals(value));

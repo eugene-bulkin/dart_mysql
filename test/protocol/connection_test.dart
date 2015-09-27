@@ -152,7 +152,7 @@ main() {
       0x00
     ];
     final authHandshakePacket =
-    new Packet.fromBuffer(authHandshakeBuffer.toList(growable: true));
+        new Packet.fromBuffer(authHandshakeBuffer.toList(growable: true));
     ServerBus bus;
     StreamController controller;
     Connection conn;
@@ -166,7 +166,7 @@ main() {
     test('throws error when connection missing bus or username', () {
       expect(() => new Connection.fromBus(null, username), throwsArgumentError);
       expect(
-              () => new Connection.fromBus(
+          () => new Connection.fromBus(
               new FakeServerBus(new StreamController<Packet>()), null),
           throwsArgumentError);
     });
@@ -234,7 +234,7 @@ main() {
           0x00
         ];
         final handshakePacket =
-        new Packet.fromBuffer(handshakeBuffer.toList(growable: true));
+            new Packet.fromBuffer(handshakeBuffer.toList(growable: true));
         var handshakeData = conn.parseHandshake(handshakePacket.payload);
         expect(handshakeData.serverVersion, equals('5.5.2-m2'));
         expect(handshakeData.connectionId, equals(0x0b));
@@ -317,21 +317,21 @@ main() {
 
       test('with password', () {
         expect(Connection.hashPassword(password, scramble),
-        orderedEquals(correctHash));
+            orderedEquals(correctHash));
       });
     });
 
     group('when creating response', () {
       test('throws error if client protocol is < 4.1', () {
         var handshake =
-        new HandshakeData(null, null, 0x00000000, null, null, null, null);
+            new HandshakeData(null, null, 0x00000000, null, null, null, null);
         expect(() => conn.makeResponse(handshake), throwsUnsupportedError);
       });
 
       test('correctly creates response without DB', () {
         var characterSet = 0x08;
         var handshake = new HandshakeData(null, null,
-        CapabilityFlags.CLIENT_PROTOCOL_41, characterSet, null, null, null);
+            CapabilityFlags.CLIENT_PROTOCOL_41, characterSet, null, null, null);
         var packet = conn.makeResponse(handshake);
         var reader = new BufferReader(packet.payload);
 
@@ -349,13 +349,13 @@ main() {
         var conn = new Connection.fromBus(bus, username, database: database);
         var characterSet = 0x08;
         var handshake = new HandshakeData(null, null,
-        CapabilityFlags.CLIENT_PROTOCOL_41, characterSet, null, null, null);
+            CapabilityFlags.CLIENT_PROTOCOL_41, characterSet, null, null, null);
         var packet = conn.makeResponse(handshake);
         var reader = new BufferReader(packet.payload);
 
         var capabilities = reader.readInt4();
         expect(capabilities & CapabilityFlags.CLIENT_CONNECT_WITH_DB,
-        greaterThan(0));
+            greaterThan(0));
         expect(reader.readInt4(), equals(0x01000000));
         expect(reader.readInt1(), equals(characterSet));
         reader.readBytes(23);
@@ -372,8 +372,8 @@ main() {
             null,
             null,
             CapabilityFlags.CLIENT_PROTOCOL_41 |
-            CapabilityFlags.CLIENT_SECURE_CONNECTION |
-            CapabilityFlags.CLIENT_PLUGIN_AUTH,
+                CapabilityFlags.CLIENT_SECURE_CONNECTION |
+                CapabilityFlags.CLIENT_PLUGIN_AUTH,
             characterSet,
             null,
             scramble,
@@ -399,8 +399,8 @@ main() {
             null,
             null,
             CapabilityFlags.CLIENT_PROTOCOL_41 |
-            CapabilityFlags.CLIENT_SECURE_CONNECTION |
-            CapabilityFlags.CLIENT_PLUGIN_AUTH,
+                CapabilityFlags.CLIENT_SECURE_CONNECTION |
+                CapabilityFlags.CLIENT_PLUGIN_AUTH,
             characterSet,
             null,
             scramble,
@@ -418,19 +418,19 @@ main() {
             reader.readNullTerminatedString(), equals(UTF8.encode(username)));
         expect(reader.readBytes(reader.readInt1()), orderedEquals(correctHash));
         expect(reader.readNullTerminatedString(),
-        equals(UTF8.encode(authPluginName)));
+            equals(UTF8.encode(authPluginName)));
       });
 
       test('correctly creates response with all information', () {
         var conn = new Connection.fromBus(bus, username,
-        password: password, database: database);
+            password: password, database: database);
         var characterSet = 0x08;
         var handshake = new HandshakeData(
             null,
             null,
             CapabilityFlags.CLIENT_PROTOCOL_41 |
-            CapabilityFlags.CLIENT_SECURE_CONNECTION |
-            CapabilityFlags.CLIENT_PLUGIN_AUTH,
+                CapabilityFlags.CLIENT_SECURE_CONNECTION |
+                CapabilityFlags.CLIENT_PLUGIN_AUTH,
             characterSet,
             null,
             scramble,
@@ -440,7 +440,7 @@ main() {
 
         var capabilities = reader.readInt4();
         expect(capabilities & CapabilityFlags.CLIENT_CONNECT_WITH_DB,
-        greaterThan(0));
+            greaterThan(0));
         expect(reader.readInt4(), equals(0x01000000));
         expect(reader.readInt1(), equals(characterSet));
         reader.readBytes(23);
@@ -450,7 +450,7 @@ main() {
         expect(
             reader.readNullTerminatedString(), equals(UTF8.encode(database)));
         expect(reader.readNullTerminatedString(),
-        equals(UTF8.encode(authPluginName)));
+            equals(UTF8.encode(authPluginName)));
       });
     });
 
@@ -459,7 +459,7 @@ main() {
       conn.doHandshake(authHandshakePacket);
 
       var expected =
-      conn.makeResponse(conn.parseHandshake(authHandshakePacket.payload));
+          conn.makeResponse(conn.parseHandshake(authHandshakePacket.payload));
 
       expect(await eventFuture, equals(expected));
     }, timeout: new Timeout(const Duration(seconds: 5)));

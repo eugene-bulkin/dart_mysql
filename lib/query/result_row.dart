@@ -17,7 +17,7 @@ class ResultRow {
       ColumnDef def;
       try {
         def = columnDefs.firstWhere((columnDef) =>
-        columnDef.virtualColumnName == key || columnDef.columnName == key);
+            columnDef.virtualColumnName == key || columnDef.columnName == key);
       } on StateError catch (_) {
         throw new ArgumentError('Column by name "$key" does not exist.');
       }
