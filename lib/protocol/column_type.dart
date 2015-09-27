@@ -64,18 +64,18 @@ class ColumnType {
   static const MYSQL_TYPE_STRING = const ColumnType(0xfe);
   static const MYSQL_TYPE_GEOMETRY = const ColumnType(0xff);
 
-  final int _value;
+  final int value;
 
-  const ColumnType(this._value);
+  const ColumnType(this.value);
 
-  toString() => 'ColumnType.${_typeNames[_value]}';
+  toString() => 'ColumnType.${_typeNames[value]}';
 
-  int get hashCode => _value.hashCode;
+  int get hashCode => value.hashCode;
 
   operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! ColumnType) return false;
 
-    return _value == other._value;
+    return value == other.value;
   }
 }
