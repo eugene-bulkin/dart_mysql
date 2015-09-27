@@ -44,31 +44,25 @@ class ColumnDef {
     var characterSet = reader.readInt2();
     var columnLength = reader.readInt4();
     var columnType = new ColumnType(reader.readInt1());
+    print(columnType);
+    print(columnLength);
     var flags = reader.readInt2();
     var decimals = reader.readInt1();
 
-    return new ColumnDef._(
-        schema,
-        virtualTableName,
-        tableName,
-        columnName,
-        virtualColumnName,
-        characterSet,
-        columnLength,
-        columnType,
-        flags,
-        decimals);
+    return new ColumnDef(
+        schema, tableName, columnName, columnLength, columnType,
+        virtualTableName: virtualTableName,
+        virtualColumnName: virtualColumnName,
+        characterSet: characterSet,
+        flags: flags,
+        decimals: decimals);
   }
 
-  ColumnDef._(
-      this.schema,
-      this.virtualTableName,
-      this.tableName,
-      this.columnName,
+  ColumnDef(this.schema, this.tableName, this.columnName, this.columnLength,
+            this.columnType,
+            {this.virtualTableName,
       this.virtualColumnName,
-      this.characterSet,
-      this.columnLength,
-      this.columnType,
-      this.flags,
-      this.decimals);
+            this.characterSet: 33,
+            this.flags: 0x0000,
+            this.decimals: 0});
 }

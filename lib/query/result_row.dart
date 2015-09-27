@@ -1,4 +1,4 @@
-import 'package:dart_mysql/query/query_handler.dart';
+import 'package:dart_mysql/query/column_def.dart';
 
 /// A row in a result set received during a query command.
 class ResultRow {
@@ -12,10 +12,15 @@ class ResultRow {
   ResultRow(this.columnDefs, this._row);
 
   /// Accesses a column via column name or column index.
-  String operator [](var key) {
+  dynamic operator [](var key) {
     if (key is String) {
-      var def = columnDefs.firstWhere((columnDef) =>
-          columnDef.virtualColumnName == key || columnDef.columnName == key);
+      ColumnDef def;
+      try {
+        def = columnDefs.firstWhere((columnDef) =>
+        columnDef.virtualColumnName == key || columnDef.columnName == key);
+      } on StateError catch (_) {
+        throw new ArgumentError('Column by name "$key" does not exist.');
+      }
       return _row[columnDefs.indexOf(def)];
     }
     if (key is int) {
