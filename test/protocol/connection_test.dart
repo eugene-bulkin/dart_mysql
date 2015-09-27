@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:dart_mysql/protocol/buffer_reader.dart';
 import 'package:dart_mysql/protocol/capability_flags.dart';
+import 'package:dart_mysql/protocol/command_type.dart';
 import 'package:dart_mysql/protocol/connection.dart';
 import 'package:dart_mysql/protocol/packet.dart';
 import 'package:dart_mysql/protocol/server_bus.dart';
@@ -471,6 +472,32 @@ main() {
       controller.add(new Packet(1, 0, [0xFF]));
 
       expect(connFuture, throwsStateError);
+    }, timeout: new Timeout(const Duration(seconds: 5)));
+
+    test('handles queries', () async {
+      const query = 'foo';
+
+      var connFuture = conn.connect();
+      await bus.connected;
+      controller.add(authHandshakePacket);
+      controller.add(new Packet(1, 0, [0x00]));
+      await connFuture;
+
+      var packetFuture = controller.stream.first;
+      var queryFuture = conn.query(query);
+      var buf = [CommandType.COM_QUERY]
+        ..addAll(UTF8.encode(query));
+      var expectedPacket = new Packet(buf.length, 0, buf);
+      expect(await packetFuture, equals(expectedPacket));
+
+      // need to wait for the next event loop
+      await new Future(() {
+      });
+
+      // OK_Packet to end query (we just want to test that process works when query handler is done).
+      controller.add(new Packet(1, 0, [0x00]));
+
+      expect(await queryFuture, isEmpty);
     }, timeout: new Timeout(const Duration(seconds: 5)));
   });
 }
