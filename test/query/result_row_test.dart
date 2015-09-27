@@ -52,6 +52,10 @@ main() {
       expect(() => row['$col1$col2'], throwsArgumentError);
     });
 
+    test('throws error when trying to use anything other than int or string to access column', () {
+      expect(() => row[false], throwsArgumentError);
+    });
+
     test('correctly outputs string', () {
       var result = row.toString();
 
