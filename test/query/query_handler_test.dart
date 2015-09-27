@@ -24,8 +24,26 @@ main() {
     });
 
     test('throws state error on ERR Packet', () {
-      expect(() => handler.handlePacket(new Packet(1, 0, [0xFF])),
-      throwsStateError);
+      expect(
+              () => handler.handlePacket(new Packet(1, 0, [
+            0xFF,
+            0x88,
+            0x13,
+            0x23,
+            0x66,
+            0x6F,
+            0x6F,
+            0x00,
+            0x00,
+            0x62,
+            0x61,
+            0x72,
+            0x20,
+            0x62,
+            0x61,
+            0x7A
+          ])),
+          throwsStateError);
     });
 
     test('moves to column count stage after column count arrives', () {
