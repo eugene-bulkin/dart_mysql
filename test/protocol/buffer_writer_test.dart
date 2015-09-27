@@ -9,7 +9,8 @@ main() {
       writer = new BufferWriter();
     });
 
-    test('throws error if trying to write an int bigger than desired length', () {
+    test('throws error if trying to write an int bigger than desired length',
+        () {
       expect(() => writer.writeInt1(0x100), throwsArgumentError);
       expect(() => writer.writeLenencInt(1 << 65), throwsArgumentError);
     });
@@ -39,23 +40,27 @@ main() {
     test('writes int<3>', () {
       writer.writeInt3(0xABCDEF);
       writer.writeInt3(0xAB);
-      expect(writer.buffer, orderedEquals([0xEF, 0xCD, 0xAB, 0xAB, 0x00, 0x00]));
+      expect(
+          writer.buffer, orderedEquals([0xEF, 0xCD, 0xAB, 0xAB, 0x00, 0x00]));
     });
 
     test('writes int<4>', () {
       writer.writeInt4(0xABCDEF98);
       writer.writeInt4(0xAB);
-      expect(writer.buffer, orderedEquals([0x98, 0xEF, 0xCD, 0xAB, 0xAB, 0x00, 0x00, 0x00]));
+      expect(writer.buffer,
+          orderedEquals([0x98, 0xEF, 0xCD, 0xAB, 0xAB, 0x00, 0x00, 0x00]));
     });
 
     test('writes int<6>', () {
       writer.writeInt6(0xABCDEF987654);
-      expect(writer.buffer, orderedEquals([0x54, 0x76, 0x98, 0xEF, 0xCD, 0xAB]));
+      expect(
+          writer.buffer, orderedEquals([0x54, 0x76, 0x98, 0xEF, 0xCD, 0xAB]));
     });
 
     test('writes int<8>', () {
       writer.writeInt8(0xABCDEF9876543210);
-      expect(writer.buffer, orderedEquals([0x10, 0x32, 0x54, 0x76, 0x98, 0xEF, 0xCD, 0xAB]));
+      expect(writer.buffer,
+          orderedEquals([0x10, 0x32, 0x54, 0x76, 0x98, 0xEF, 0xCD, 0xAB]));
     });
 
     group('writes int<lenenc>', () {
@@ -68,22 +73,42 @@ main() {
       test('for 251 <= n < 2^16', () {
         writer.writeLenencInt(0xfb);
         writer.writeLenencInt(0xff);
-        expect(writer.buffer, orderedEquals([0xfc, 0xfb, 0x00,
-        0xfc, 0xff, 0x00]));
+        expect(
+            writer.buffer, orderedEquals([0xfc, 0xfb, 0x00, 0xfc, 0xff, 0x00]));
       });
 
       test('for 2^16 <= n < 2^24', () {
         writer.writeLenencInt(0x100000);
         writer.writeLenencInt(0xffff01);
-        expect(writer.buffer, orderedEquals([0xfd, 0x00, 0x00, 0x10,
-        0xfd, 0x01, 0xff, 0xff]));
+        expect(writer.buffer,
+            orderedEquals([0xfd, 0x00, 0x00, 0x10, 0xfd, 0x01, 0xff, 0xff]));
       });
 
       test('for 2^24 <= n < 2^64', () {
         writer.writeLenencInt(0x10000000);
         writer.writeLenencInt(0xffffffffffff);
-        expect(writer.buffer, orderedEquals([0xfe, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00,
-        0xfe, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00]));
+        expect(
+            writer.buffer,
+            orderedEquals([
+              0xfe,
+              0x00,
+              0x00,
+              0x00,
+              0x10,
+              0x00,
+              0x00,
+              0x00,
+              0x00,
+              0xfe,
+              0xff,
+              0xff,
+              0xff,
+              0xff,
+              0xff,
+              0xff,
+              0x00,
+              0x00
+            ]));
       });
     });
 

@@ -44,8 +44,6 @@ class ColumnDef {
     var characterSet = reader.readInt2();
     var columnLength = reader.readInt4();
     var columnType = new ColumnType(reader.readInt1());
-    print(columnType);
-    print(columnLength);
     var flags = reader.readInt2();
     var decimals = reader.readInt1();
 

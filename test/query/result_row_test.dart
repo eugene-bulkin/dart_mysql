@@ -24,8 +24,10 @@ main() {
     ResultRow row;
 
     setUp(() {
-      var def1 = new ColumnDef(schema, table, col1, len1, type1, virtualColumnName: '$col1$col1');
-      var def2 = new ColumnDef(schema, table, col2, len2, type2, virtualColumnName: '$col2$col2');
+      var def1 = new ColumnDef(schema, table, col1, len1, type1,
+      virtualColumnName: '$col1$col1');
+      var def2 = new ColumnDef(schema, table, col2, len2, type2,
+      virtualColumnName: '$col2$col2');
       var columnDefs = [def1, def2];
       values = [0xdeadbeef, 'foobar'];
       row = new ResultRow(columnDefs, values);
@@ -52,7 +54,9 @@ main() {
       expect(() => row['$col1$col2'], throwsArgumentError);
     });
 
-    test('throws error when trying to use anything other than int or string to access column', () {
+    test(
+        'throws error when trying to use anything other than int or string to access column',
+            () {
       expect(() => row[false], throwsArgumentError);
     });
 

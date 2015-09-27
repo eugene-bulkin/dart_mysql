@@ -6,7 +6,7 @@ main() {
   group('ColumnType', () {
     test('outputs correct string', () {
       expect(ColumnType.MYSQL_TYPE_DECIMAL.toString(),
-      equals('ColumnType.DECIMAL'));
+          equals('ColumnType.DECIMAL'));
       expect(ColumnType.MYSQL_TYPE_TINY.toString(), equals('ColumnType.TINY'));
       expect(
           ColumnType.MYSQL_TYPE_SHORT.toString(), equals('ColumnType.SHORT'));
@@ -17,44 +17,44 @@ main() {
           ColumnType.MYSQL_TYPE_DOUBLE.toString(), equals('ColumnType.DOUBLE'));
       expect(ColumnType.MYSQL_TYPE_NULL.toString(), equals('ColumnType.NULL'));
       expect(ColumnType.MYSQL_TYPE_TIMESTAMP.toString(),
-      equals('ColumnType.TIMESTAMP'));
+          equals('ColumnType.TIMESTAMP'));
       expect(ColumnType.MYSQL_TYPE_LONGLONG.toString(),
-      equals('ColumnType.LONGLONG'));
+          equals('ColumnType.LONGLONG'));
       expect(
           ColumnType.MYSQL_TYPE_INT24.toString(), equals('ColumnType.INT24'));
       expect(ColumnType.MYSQL_TYPE_DATE.toString(), equals('ColumnType.DATE'));
       expect(ColumnType.MYSQL_TYPE_TIME.toString(), equals('ColumnType.TIME'));
       expect(ColumnType.MYSQL_TYPE_DATETIME.toString(),
-      equals('ColumnType.DATETIME'));
+          equals('ColumnType.DATETIME'));
       expect(ColumnType.MYSQL_TYPE_YEAR.toString(), equals('ColumnType.YEAR'));
       expect(ColumnType.MYSQL_TYPE_NEWDATE.toString(),
-      equals('ColumnType.NEWDATE'));
+          equals('ColumnType.NEWDATE'));
       expect(ColumnType.MYSQL_TYPE_VARCHAR.toString(),
-      equals('ColumnType.VARCHAR'));
+          equals('ColumnType.VARCHAR'));
       expect(ColumnType.MYSQL_TYPE_BIT.toString(), equals('ColumnType.BIT'));
       expect(ColumnType.MYSQL_TYPE_TIMESTAMP2.toString(),
-      equals('ColumnType.TIMESTAMP2'));
+          equals('ColumnType.TIMESTAMP2'));
       expect(ColumnType.MYSQL_TYPE_DATETIME2.toString(),
-      equals('ColumnType.DATETIME2'));
+          equals('ColumnType.DATETIME2'));
       expect(
           ColumnType.MYSQL_TYPE_TIME2.toString(), equals('ColumnType.TIME2'));
       expect(ColumnType.MYSQL_TYPE_NEWDECIMAL.toString(),
-      equals('ColumnType.NEWDECIMAL'));
+          equals('ColumnType.NEWDECIMAL'));
       expect(ColumnType.MYSQL_TYPE_ENUM.toString(), equals('ColumnType.ENUM'));
       expect(ColumnType.MYSQL_TYPE_SET.toString(), equals('ColumnType.SET'));
       expect(ColumnType.MYSQL_TYPE_TINY_BLOB.toString(),
-      equals('ColumnType.TINY_BLOB'));
+          equals('ColumnType.TINY_BLOB'));
       expect(ColumnType.MYSQL_TYPE_MEDIUM_BLOB.toString(),
-      equals('ColumnType.MEDIUM_BLOB'));
+          equals('ColumnType.MEDIUM_BLOB'));
       expect(ColumnType.MYSQL_TYPE_LONG_BLOB.toString(),
-      equals('ColumnType.LONG_BLOB'));
+          equals('ColumnType.LONG_BLOB'));
       expect(ColumnType.MYSQL_TYPE_BLOB.toString(), equals('ColumnType.BLOB'));
       expect(ColumnType.MYSQL_TYPE_VAR_STRING.toString(),
-      equals('ColumnType.VAR_STRING'));
+          equals('ColumnType.VAR_STRING'));
       expect(
           ColumnType.MYSQL_TYPE_STRING.toString(), equals('ColumnType.STRING'));
       expect(ColumnType.MYSQL_TYPE_GEOMETRY.toString(),
-      equals('ColumnType.GEOMETRY'));
+          equals('ColumnType.GEOMETRY'));
     });
 
     test('equality and hashCode', () {

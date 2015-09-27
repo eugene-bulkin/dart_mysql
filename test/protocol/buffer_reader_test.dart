@@ -40,15 +40,14 @@ main() {
     test('reads string<lenenc>', () {
       const hexString = const [0x03, 0x66, 0x6f, 0x6f];
       var reader = new BufferReader(hexString);
-      expect(reader.readLenencString(),
-      orderedEquals(hexString.sublist(1)));
+      expect(reader.readLenencString(), orderedEquals(hexString.sublist(1)));
     });
 
     test('reads string<NUL>', () {
       const hexString = const [0x66, 0x6f, 0x6f, 0x00];
       var reader = new BufferReader(hexString);
       expect(reader.readNullTerminatedString(),
-      orderedEquals(hexString.sublist(0, hexString.length - 1)));
+          orderedEquals(hexString.sublist(0, hexString.length - 1)));
     });
 
     test('throws when string<NUL> if no null byte occurs', () {

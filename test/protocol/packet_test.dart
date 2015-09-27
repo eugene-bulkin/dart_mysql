@@ -101,7 +101,8 @@ main() {
     });
 
     test('can be created from Packet', () {
-      var okPacket = new OKPacket.fromPacket(packet, CapabilityFlags.CLIENT_PROTOCOL_41);
+      var okPacket =
+      new OKPacket.fromPacket(packet, CapabilityFlags.CLIENT_PROTOCOL_41);
 
       expect(okPacket.affectedRows, equals(affectedRows));
       expect(okPacket.lastInsertId, equals(lastInsertId));
